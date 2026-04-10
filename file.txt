@@ -126,3 +126,36 @@
 
 
 
+----- Bureau 
+bureau  - SHAPE:  (1716428, 17)
+0     SK_ID_CURR                          0               0.00%           int64           - 
+1     SK_ID_BUREAU                        0               0.00%           int64           - 
+2     CREDIT_ACTIVE                       0               0.00%           object          - 
+3     CREDIT_CURRENCY                     0               0.00%           object          - 
+4     DAYS_CREDIT                         0               0.00%           int64           - 
+5     CREDIT_DAY_OVERDUE                  0               0.00%           int64           - 
+6     DAYS_CREDIT_ENDDATE                 105553          6.15%           float64         - _MISSING_FLAG -> missing is meannigful here cuz mean no approved date specially credit cards    
+7     DAYS_ENDDATE_FACT                   633653          36.92%          float64         - _MISSING_FLAG -> is credit ended
+8     AMT_CREDIT_MAX_OVERDUE              1124488         65.51%          float64         - _MISSING_FLAG -> means never overdue
+9     CNT_CREDIT_PROLONG                  0               0.00%           int64           - 
+10    AMT_CREDIT_SUM                      13              0.00%           float64         - 
+11    AMT_CREDIT_SUM_DEBT                 257669          15.01%          float64         - _HAS_DEPT_FLAG -> if he still has dept 
+12    AMT_CREDIT_SUM_LIMIT                591780          34.48%          float64         - _MISSING_FLAG -> usually credit loans are the ones with the limit
+13    AMT_CREDIT_SUM_OVERDUE              0               0.00%           float64         - 
+14    CREDIT_TYPE                         0               0.00%           object          - 
+15    DAYS_CREDIT_UPDATE                  0               0.00%           int64           - 
+16    AMT_ANNUITY                         1226791         71.47%          float64         - _MISSING_FLAG -> some loans doesnt have a fixed AMT_ANNUITY like credit_card ...
+
+features eng 
+- AMT_ANNUITY / AMT_CREDIT_SUM
+- AMT_CREDIT_SUM_DEBT / AMT_CREDIT_SUM
+
+
+-----------------
+
+bureau_balance - SHAPE:  (27299925, 3)
+0     SK_ID_BUREAU                        0               0.00%           int64           - 
+1     MONTHS_BALANCE                      0               0.00%           int64           - 
+2     STATUS                              0               0.00%           object          - 
+
+-----------------
