@@ -88,12 +88,6 @@ def transform_bureau_tables(bureau, bb):
 
     bb['STATUS_NUM'] = bb['STATUS'].map(status_map)
 
-    # Safety check
-    required_bb_cols = ['SK_ID_BUREAU', 'MONTHS_BALANCE', 'STATUS_NUM']
-    missing_bb_cols = [c for c in required_bb_cols if c not in bb.columns]
-    if missing_bb_cols:
-        raise KeyError(f"Missing columns in bureau_balance: {missing_bb_cols}")
-
     bb = bb.sort_values(['SK_ID_BUREAU', 'MONTHS_BALANCE'])
 
     # -----------------------------

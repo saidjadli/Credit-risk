@@ -40,8 +40,8 @@
 39    LIVE_CITY_NOT_WORK_CITY             0               0.00%           int64           - 
 40    ORGANIZATION_TYPE                   0               0.00%           object          - 
 41    EXT_SOURCE_1                        173378          56.38%          float64         - add missing flag for the three
-42    EXT_SOURCE_2                        660             0.21%           float64         - stat methods per record
-43    EXT_SOURCE_3                        60965           19.83%          float64         - impute with median (skip nan)
+42    EXT_SOURCE_2                        660             0.21%           float64         - impute with median (skip nan)
+43    EXT_SOURCE_3                        60965           19.83%          float64         - stat methods per record
 44    APARTMENTS_AVG                      156061          50.75%          float64         - Add NAME_MISSING_FLAG as an indication of missing, dont replace 
 45    BASEMENTAREA_AVG                    179943          58.52%          float64         - 
 46    YEARS_BEGINEXPLUATATION_AVG         150007          48.78%          float64         - 
@@ -90,7 +90,7 @@
 89    WALLSMATERIAL_MODE                  156341          50.84%          object          - 
 90    EMERGENCYSTATE_MODE                 145755          47.40%          object          - 
 91    OBS_30_CNT_SOCIAL_CIRCLE            1021            0.33%           float64         - df['REVOLVING_LOAN'] = (df['NAME_CONTRACT_TYPE'] == 'Revolving loans').astype(int) this category (product) has diffrent data
-92    DEF_30_CNT_SOCIAL_CIRCLE            1021            0.33%           float64         - two ways either keep nan or replace by -1 try both for the 4 variables
+92    DEF_30_CNT_SOCIAL_CIRCLE            1021            0.33%           float64         - two ways either keep nan or replace by -1, try both for the 4 variables
 93    OBS_60_CNT_SOCIAL_CIRCLE            1021            0.33%           float64         - 
 94    DEF_60_CNT_SOCIAL_CIRCLE            1021            0.33%           float64         - 
 95    DAYS_LAST_PHONE_CHANGE              1               0.00%           float64         - 
@@ -140,7 +140,7 @@ bureau  - SHAPE:  (1716428, 17)
 9     CNT_CREDIT_PROLONG                  0               0.00%           int64           - 
 10    AMT_CREDIT_SUM                      13              0.00%           float64         - 
 11    AMT_CREDIT_SUM_DEBT                 257669          15.01%          float64         - _HAS_DEPT_FLAG -> if he still has dept 
-12    AMT_CREDIT_SUM_LIMIT                591780          34.48%          float64         - _MISSING_FLAG -> usually credit loans are the ones with the limit
+12    AMT_CREDIT_SUM_LIMIT                591780          34.48%          float64         - _MISSING_FLAG -> usually credit card loans are the ones with the limit
 13    AMT_CREDIT_SUM_OVERDUE              0               0.00%           float64         - 
 14    CREDIT_TYPE                         0               0.00%           object          - 
 15    DAYS_CREDIT_UPDATE                  0               0.00%           int64           - 
