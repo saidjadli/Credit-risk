@@ -185,3 +185,49 @@ def transform_bureau_tables(bureau, bb):
     final = bureau_client.merge(bb_client, on='SK_ID_CURR', how='left')
 
     return final
+
+
+
+
+
+def transform_previous_applications(df):
+    df = df.copy()
+
+    # 1. Missing flag pour toutes les colonnes contenant des valeurs manquantes
+    cols_with_missing = df.columns[df.isna().any()]
+
+    for col in cols_with_missing:
+        df[f"{col}_MISSING_FLAG"] = df[col].isna().astype(int)
+
+    # 2. Ratios
+    # On remplace les divisions par 0 par NaN pour éviter inf / -inf
+    amt_application = df["AMT_APPLICATION"].replace(0, np.nan)
+    amt_credit = df["AMT_CREDIT"].replace(0, np.nan)
+
+    df["AMT_ANNUITY_AMT_APPLICATION_RATIO"] = df["AMT_ANNUITY"] / amt_application
+    df["AMT_ANNUITY_AMT_CREDIT_RATIO"] = df["AMT_ANNUITY"] / amt_credit
+    df["AMT_GOODS_PRICE_AMT_CREDIT_RATIO"] = df["AMT_GOODS_PRICE"] / amt_credit
+
+    # 3. Nettoyage des valeurs infinies éventuelles
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    # Agrégations numériques
+    num_agg = df.select_dtypes(include=["int64", "float64"]).columns.tolist()
+    num_agg = [col for col in num_agg if col not in ["SK_ID_CURR", "SK_ID_PREV"]]
+
+    agg_dict = {col: ["mean", "max", "min", "sum"] for col in num_agg}
+
+    # Ajout du nombre de previous applications
+    agg_dict["SK_ID_PREV"] = ["count"]
+
+    df_agg = df.groupby("SK_ID_CURR").agg(agg_dict)
+
+    # Flatten colonnes multi-index
+    df_agg.columns = [
+        f"{col}_{stat}".upper() for col, stat in df_agg.columns
+    ]
+
+    df_agg.reset_index(inplace=True)
+    
+    
+    return df_agg

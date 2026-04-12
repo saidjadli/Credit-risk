@@ -33,9 +33,9 @@ def train_model(df_train, df_test):
 
         # Modèle de classification
         model = lgb.LGBMClassifier(
-            n_estimators=1000,
-            learning_rate=0.1,
-            num_leaves=31,
+            n_estimators=3000,
+            learning_rate=0.005,
+            num_leaves=64,
             subsample=0.8,
             colsample_bytree=0.8,
             random_state=42,
@@ -47,7 +47,7 @@ def train_model(df_train, df_test):
             X_train, y_train,
             eval_set=[(X_valid, y_valid)],
             eval_metric="auc",
-            callbacks=[lgb.early_stopping(200, verbose=True)]
+            callbacks=[lgb.early_stopping(500, verbose=True)]
         )
         results['auc_train'] = eval(model, X_train, y_train)
         results['auc_val'] = eval(model, X_valid, y_valid)
