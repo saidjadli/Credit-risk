@@ -485,3 +485,50 @@ def clean_feature_names(df: pd.DataFrame) -> pd.DataFrame:
 
     df.columns = unique_cols
     return df
+
+
+
+
+def transform_installments_payments(df):
+    """
+    Fonction pour transformer le fichier installments_payments.csv.
+    Cette fonction effectue des transformations telles que :
+    - Création de flags pour les valeurs manquantes
+    - Calcul de statistiques comportementales pour les paiements
+    - Agrégation des paiements par client (SK_ID_CURR).
+    """
+    df_copy = df.copy()
+
+    # 1. Flags de valeurs manquantes
+    cols_with_missing = df_copy.columns[df_copy.isna().any()].tolist()
+    for col in cols_with_missing:
+        df_copy[f"{col}_MISSING_FLAG"] = df_copy[col].isna().astype(int)
+
+    # 2. Traitement des paiements (calcul des statistiques comportementales)
+    # - Calcul du montant moyen de paiement par échéance
+    df_copy["AMT_PAYMENT_MEAN"] = df_copy.groupby("SK_ID_CURR")["AMT_PAYMENT"].transform("mean")
+    
+    # - Ratio du paiement par rapport à l'échéance
+    df_copy["PAYMENT_TO_INSTALMENT_RATIO"] = df_copy["AMT_PAYMENT"] / df_copy["AMT_INSTALMENT"].replace(0, np.nan)
+    
+    # - Ratio du nombre d'échéances payées
+    df_copy["PAYMENT_INSTALMENT_RATIO"] = df_copy["NUM_INSTALMENT_NUMBER"] / df_copy["NUM_INSTALMENT_VERSION"].replace(0, np.nan)
+    
+    # 3. Agrégation des paiements par client (par SK_ID_CURR)
+    agg_dict = {
+        "AMT_PAYMENT": ["mean", "sum", "max", "min"],
+        "DAYS_ENTRY_PAYMENT": ["mean", "min", "max"],
+        "NUM_INSTALMENT_NUMBER": ["max"],  # Dernier paiement observé
+        "PAYMENT_TO_INSTALMENT_RATIO": ["mean"],  # Ratio moyen
+    }
+
+    df_agg = df_copy.groupby("SK_ID_CURR").agg(agg_dict)
+    df_agg.columns = [f"INSTALLMENTS_{col}_{stat}".upper() for col, stat in df_agg.columns]
+
+    # 4. Fusionner les agrégations avec les autres transformations
+    df_final = df_agg.reset_index()
+
+    # 5. Nettoyage : gestion des valeurs infinies ou manquantes
+    df_final.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+    return df_final
