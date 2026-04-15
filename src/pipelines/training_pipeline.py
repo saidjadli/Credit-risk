@@ -62,13 +62,9 @@ def main():
     joblib.dump(model, model_path)
     logging.info("Model saved at %s", model_path)
 
-    # Save training features
-    features = result.get("features", df_train.drop(columns=["TARGET", "SK_ID_CURR"]).columns.tolist())
-    features_path = os.path.join(ARTIFACTS_MODEL_DIR, "features.json")
-    save_json(features, features_path)
-    logging.info("Features saved at %s", features_path)
 
     # Save feature dtypes
+    features = result.get("features", df_train.drop(columns=["TARGET", "SK_ID_CURR"]).columns.tolist())
     feature_df = df_train[features].copy()
     feature_dtypes = {col: str(dtype) for col, dtype in feature_df.dtypes.items()}
     feature_dtypes_path = os.path.join(ARTIFACTS_MODEL_DIR, "feature_dtypes.json")
