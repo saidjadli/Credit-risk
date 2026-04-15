@@ -37,14 +37,15 @@ def main():
     # logging.info("Shape after dropping columns: %s", df_test.shape)
 
     model_path = os.path.join(ARTIFACTS_MODEL_DIR, "lgbm_model.pkl")
-    features_path = os.path.join(ARTIFACTS_MODEL_DIR, "features.json")
+    features_path = os.path.join(ARTIFACTS_MODEL_DIR, "feature_dtypes.json")
 
     logging.info("Loading model from %s", model_path)
     model = joblib.load(model_path)
     logging.info("Model loaded successfully")
 
-    logging.info("Loading feature list from %s", features_path)
-    features = load_json(features_path)
+    logging.info("Loading feature dtypes from %s", features_path)
+    feature_dtypes = load_json(features_path)
+    features = list(feature_dtypes.keys())
 
     if "SK_ID_CURR" not in df_test.columns:
         raise ValueError("Column 'SK_ID_CURR' is missing from test data.")
