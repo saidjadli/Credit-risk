@@ -1,73 +1,78 @@
-import sys
 import os
 import logging
 import pandas as pd
-from src.data.features import transform_application_table, transform_bureau_tables, transform_previous_and_pos_cash, transform_credit_card_balance, transform_installments_payments, clean_feature_names
-from src.config import TRAIN_DATA_DIR, ARCHIVE_DATA_DIR
+
+from src.data.features import (
+    transform_application_table,
+    transform_bureau_tables,
+    transform_previous_and_pos_cash,
+    transform_credit_card_balance,
+    transform_installments_payments,
+    clean_feature_names
+)
+from src.config import ARCHIVE_DATA_DIR
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-sys.path.append(os.path.abspath(".."))
-pd.set_option('display.max_columns', None)
 
 
-#### ---- Paths
-table_applications_train_path = os.path.join(ARCHIVE_DATA_DIR, "application_train.csv")
-table_applications_test_path = os.path.join(ARCHIVE_DATA_DIR, "application_test.csv")
-bureau_path = os.path.join(ARCHIVE_DATA_DIR, "bureau.csv")
-bureau_balance_path = os.path.join(ARCHIVE_DATA_DIR, "bureau_balance.csv")
-previous_path = os.path.join(ARCHIVE_DATA_DIR, "previous_application.csv")
-pos_path = os.path.join(ARCHIVE_DATA_DIR, "POS_CASH_balance.csv")
-credit_card_path = os.path.join(ARCHIVE_DATA_DIR, "credit_card_balance.csv")
-installments_path = os.path.join(ARCHIVE_DATA_DIR, "installments_payments.csv")
+def load_raw_tables():
+    logging.info("Reading datasets...")
 
-logging.info("Paths initialized")
+    data = {
+        "application_train": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "application_train.csv")),
+        "application_test": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "application_test.csv")),
+        "bureau": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "bureau.csv")),
+        "bureau_balance": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "bureau_balance.csv")),
+        "previous_application": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "previous_application.csv")),
+        "pos_cash": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "POS_CASH_balance.csv")),
+        "credit_card": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "credit_card_balance.csv")),
+        "installments": pd.read_csv(os.path.join(ARCHIVE_DATA_DIR, "installments_payments.csv")),
+    }
 
-####  ---- Reading Dataframes
-logging.info("Reading datasets...")
-df_train = pd.read_csv(table_applications_train_path)
-df_test = pd.read_csv(table_applications_test_path)
-bureau = pd.read_csv(bureau_path, header=0)
-bureau_balance = pd.read_csv(bureau_balance_path, header=0)
-previous_app = pd.read_csv(previous_path, header=0)
-pos_cash = pd.read_csv(pos_path, header=0)
-credit_card = pd.read_csv(credit_card_path, header=0)
-installments = pd.read_csv(installments_path, header=0)
-
-logging.info("Datasets loaded")
-
-####  ---- Transforming Datframes
-logging.info("Transforming application tables...")
-df_train_tf = transform_application_table(df_train)
-df_test_tf = transform_application_table(df_test)
-
-logging.info("Transforming bureau tables...")
-final_bureau_table = transform_bureau_tables(bureau, bureau_balance)
-
-logging.info("Transforming previous applications and POS cash...")
-previous_app_tf = transform_previous_and_pos_cash(previous_app, pos_cash)
-
-logging.info("Transforming credit card balance...")
-credit_card_tf = transform_credit_card_balance(credit_card)
-
-logging.info("Transforming Instalement...")
-installments_tf = transform_installments_payments(installments)
-
-print(final_bureau_table.shape)
-print(df_train_tf.shape)
-print(previous_app_tf.shape)
-print(credit_card_tf.shape)
-
-logging.info("Merging datasets...")
-train_df = df_train_tf.merge(final_bureau_table, on='SK_ID_CURR', how='left').merge(previous_app_tf, on='SK_ID_CURR', how='left').merge(credit_card_tf, on='SK_ID_CURR', how='left').merge(installments_tf, on='SK_ID_CURR', how='left')
-test_df = df_test_tf.merge(final_bureau_table, on='SK_ID_CURR', how='left').merge(previous_app_tf, on='SK_ID_CURR', how='left').merge(credit_card_tf, on='SK_ID_CURR', how='left').merge(installments_tf, on='SK_ID_CURR', how='left')
-
-train_df = clean_feature_names(train_df)
-test_df = clean_feature_names(test_df)
+    logging.info("Datasets loaded")
+    return data
 
 
-logging.info("Saving final datasets...")
-os.makedirs(TRAIN_DATA_DIR, exist_ok=True)
-train_df.to_parquet(os.path.join(TRAIN_DATA_DIR, "df_train_final.parquet"))
-test_df.to_parquet(os.path.join(TRAIN_DATA_DIR, "df_test_final.parquet"))
+def build_final_datasets():
+    data = load_raw_tables()
 
-logging.info(f"The datadframes are saved to: '{TRAIN_DATA_DIR}'")
+    logging.info("Transforming application tables...")
+    df_train_tf = transform_application_table(data["application_train"])
+    df_test_tf = transform_application_table(data["application_test"])
+
+    logging.info("Transforming bureau tables...")
+    bureau_tf = transform_bureau_tables(data["bureau"], data["bureau_balance"])
+
+    logging.info("Transforming previous applications and POS cash...")
+    previous_tf = transform_previous_and_pos_cash(
+        data["previous_application"],
+        data["pos_cash"]
+    )
+
+    logging.info("Transforming credit card balance...")
+    credit_card_tf = transform_credit_card_balance(data["credit_card"])
+
+    logging.info("Transforming installments payments...")
+    installments_tf = transform_installments_payments(data["installments"])
+
+    logging.info("Merging datasets...")
+    train_df = (
+        df_train_tf
+        .merge(bureau_tf, on="SK_ID_CURR", how="left")
+        .merge(previous_tf, on="SK_ID_CURR", how="left")
+        .merge(credit_card_tf, on="SK_ID_CURR", how="left")
+        .merge(installments_tf, on="SK_ID_CURR", how="left")
+    )
+
+    test_df = (
+        df_test_tf
+        .merge(bureau_tf, on="SK_ID_CURR", how="left")
+        .merge(previous_tf, on="SK_ID_CURR", how="left")
+        .merge(credit_card_tf, on="SK_ID_CURR", how="left")
+        .merge(installments_tf, on="SK_ID_CURR", how="left")
+    )
+
+    train_df = clean_feature_names(train_df)
+    test_df = clean_feature_names(test_df)
+
+    return train_df, test_df
