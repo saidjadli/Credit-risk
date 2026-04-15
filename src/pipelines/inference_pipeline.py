@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 
 from src.model import test_model
-# from src.data.selection import drop_unused_columns
+from src.db.queries import insert_predictions
 from src.config import TRAIN_DATA_DIR
 
 logging.basicConfig(
@@ -32,25 +32,25 @@ def main():
     df_test = pd.read_parquet(test_path)
     logging.info("Test data loaded with shape: %s", df_test.shape)
 
-    # logging.info("Dropping unused columns")
-    # df_test = drop_unused_columns(df_test)
-    # logging.info("Shape after dropping columns: %s", df_test.shape)
-
     model_path = os.path.join(ARTIFACTS_MODEL_DIR, "lgbm_model.pkl")
-    features_path = os.path.join(ARTIFACTS_MODEL_DIR, "feature_dtypes.json")
+    feature_dtypes_path = os.path.join(ARTIFACTS_MODEL_DIR, "feature_dtypes.json")
+    params_path = os.path.join(ARTIFACTS_MODEL_DIR, "params.json")
 
     logging.info("Loading model from %s", model_path)
     model = joblib.load(model_path)
     logging.info("Model loaded successfully")
 
-    logging.info("Loading feature dtypes from %s", features_path)
-    feature_dtypes = load_json(features_path)
+    logging.info("Loading feature dtypes from %s", feature_dtypes_path)
+    feature_dtypes = load_json(feature_dtypes_path)
     features = list(feature_dtypes.keys())
+
+    logging.info("Loading params from %s", params_path)
+    params = load_json(params_path)
+    model_version = params.get("model_version", "1.0.0")
 
     if "SK_ID_CURR" not in df_test.columns:
         raise ValueError("Column 'SK_ID_CURR' is missing from test data.")
 
-    # Add missing features if needed
     missing_features = [col for col in features if col not in df_test.columns]
     extra_features = [col for col in df_test.columns if col not in features + ["SK_ID_CURR"]]
 
@@ -68,7 +68,7 @@ def main():
             len(extra_features)
         )
 
-    # Exact same order as training
+    # Keep exact same order as training
     df_test_aligned = df_test[["SK_ID_CURR"] + features].copy()
     logging.info("Aligned test data shape: %s", df_test_aligned.shape)
 
@@ -76,13 +76,17 @@ def main():
     submission = test_model(model, df_test_aligned)
     logging.info("Inference completed successfully")
 
-    if isinstance(submission, pd.DataFrame):
-        os.makedirs(SUBMISSIONS_DIR, exist_ok=True)
-        submission_path = os.path.join(SUBMISSIONS_DIR, "submission.csv")
-        submission.to_csv(submission_path, index=False)
-        logging.info("Submission saved at %s", submission_path)
-    else:
-        logging.warning("test_model did not return a DataFrame, so no submission file was saved.")
+    if not isinstance(submission, pd.DataFrame):
+        raise ValueError("test_model must return a pandas DataFrame.")
+
+    os.makedirs(SUBMISSIONS_DIR, exist_ok=True)
+    submission_path = os.path.join(SUBMISSIONS_DIR, "submission.csv")
+    submission.to_csv(submission_path, index=False)
+    logging.info("Submission saved at %s", submission_path)
+
+    logging.info("Inserting predictions into PostgreSQL table 'predictions_log'")
+    insert_predictions(submission=submission, model_version=model_version, table_name="predictions_log")
+    logging.info("Predictions inserted successfully into PostgreSQL")
 
     logging.info("Inference pipeline finished successfully")
 
