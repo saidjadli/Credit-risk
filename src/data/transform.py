@@ -3,7 +3,7 @@ import os
 import logging
 import pandas as pd
 from src.data.features import transform_application_table, transform_bureau_tables, transform_previous_and_pos_cash, transform_credit_card_balance, transform_installments_payments, clean_feature_names
-from src.config import TRAIN_DATA_DIR, RAW_DATA_DIR
+from src.config import TRAIN_DATA_DIR, ARCHIVE_DATA_DIR
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 sys.path.append(os.path.abspath(".."))
@@ -11,14 +11,14 @@ pd.set_option('display.max_columns', None)
 
 
 #### ---- Paths
-table_applications_train_path = os.path.join(RAW_DATA_DIR, "application_train.csv")
-table_applications_test_path = os.path.join(RAW_DATA_DIR, "application_test.csv")
-bureau_path = os.path.join(RAW_DATA_DIR, "bureau.csv")
-bureau_balance_path = os.path.join(RAW_DATA_DIR, "bureau_balance.csv")
-previous_path = os.path.join(RAW_DATA_DIR, "previous_application.csv")
-pos_path = os.path.join(RAW_DATA_DIR, "POS_CASH_balance.csv")
-credit_card_path = os.path.join(RAW_DATA_DIR, "credit_card_balance.csv")
-installments_path = os.path.join(RAW_DATA_DIR, "installments_payments.csv")
+table_applications_train_path = os.path.join(ARCHIVE_DATA_DIR, "application_train.csv")
+table_applications_test_path = os.path.join(ARCHIVE_DATA_DIR, "application_test.csv")
+bureau_path = os.path.join(ARCHIVE_DATA_DIR, "bureau.csv")
+bureau_balance_path = os.path.join(ARCHIVE_DATA_DIR, "bureau_balance.csv")
+previous_path = os.path.join(ARCHIVE_DATA_DIR, "previous_application.csv")
+pos_path = os.path.join(ARCHIVE_DATA_DIR, "POS_CASH_balance.csv")
+credit_card_path = os.path.join(ARCHIVE_DATA_DIR, "credit_card_balance.csv")
+installments_path = os.path.join(ARCHIVE_DATA_DIR, "installments_payments.csv")
 
 logging.info("Paths initialized")
 
