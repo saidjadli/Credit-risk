@@ -1,6 +1,7 @@
 import os
 import logging
-
+import pandas  as pd
+from src.db.queries import insert_data
 from src.data.transform import build_final_datasets
 from src.config import TRAIN_DATA_DIR
 
@@ -26,6 +27,11 @@ def main():
     logging.info("Test dataset saved to %s", test_path)
     logging.info("Gold datasets built successfully")
 
-
+    
+    # Stack verticale
+    test_df["TARGET"] = pd.NA
+    final_df = pd.concat([train_df, test_df], axis=0, ignore_index=True)
+    insert_data(final_df)
+    
 if __name__ == "__main__":
     main()  
